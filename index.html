@@ -164,6 +164,7 @@ var NEED_LIB = {
 var CONTAINER_NEEDS = ["尊重","被尊重","被爱","被支持","被在乎","被重视","被关心"];
 var STEPS = ["描述情境","翻感受卡","翻需要卡","完整表达"];
 var HIST_KEY = "nvc_history_v1";
+var DRAFT_KEY = "nvc_draft_v1";
 
 /* ————— 状态 ————— */
 var S = {
@@ -171,6 +172,9 @@ var S = {
   analysis: null, feels: [], needs: [], result: null,
   loading: false, error: "", copied: false
 };
+
+// 恢复上次未提交的输入，避免刷新后丢失
+try { S.situation = localStorage.getItem(DRAFT_KEY) || ""; } catch (e) {}
 
 /* ————— 本地历史 ————— */
 function loadHistory() {
@@ -189,6 +193,30 @@ function deleteSession(id) {
     localStorage.setItem(HIST_KEY, JSON.stringify(loadHistory().filter(function (s) { return s.id !== id; })));
   } catch (e) {}
   render();
+}
+
+function saveDraft(v) {
+  S.situation = v || "";
+  try { localStorage.setItem(DRAFT_KEY, S.situation); } catch (e) {}
+}
+function clearDraft() {
+  try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+}
+function friendlyError(e) {
+  var msg = (e && e.message) ? e.message : "未知错误";
+  if (msg.indexOf("HTTP 401") !== -1 || msg.indexOf("API key") !== -1 || msg.indexOf("API_KEY") !== -1) {
+    return "API Key 可能没有配置好，或密钥无效。请检查 Worker 的 API_KEY。";
+  }
+  if (msg.indexOf("余额") !== -1 || msg.indexOf("quota") !== -1 || msg.indexOf("insufficient") !== -1 || msg.indexOf("balance") !== -1) {
+    return "模型服务余额或额度可能不足，请检查服务商后台。原始信息：" + msg;
+  }
+  if (msg.indexOf("Failed to fetch") !== -1 || msg.indexOf("NetworkError") !== -1) {
+    return "浏览器没有连上 Worker。请检查 API_ENDPOINT 地址，或 Worker 的 CORS 配置。";
+  }
+  if (msg.indexOf("JSON") !== -1 || msg.indexOf("截断") !== -1) {
+    return "模型返回格式不稳定，没有给出完整 JSON。请再试一次，或换更稳定的模型。";
+  }
+  return msg;
 }
 
 /* ————— API ————— */
@@ -222,12 +250,14 @@ function ask(prompt) {
 
 /* ————— 动作 ————— */
 function runAnalysis() {
+  var el = document.getElementById("sit");
+  if (el) saveDraft(el.value);
   if (!S.situation.trim() || S.loading) return;
   S.loading = true; S.error = ""; render();
   ask(buildAnalysisPrompt(S.situation)).then(function (a) {
     S.analysis = a; S.feels = []; S.needs = []; S.result = null; S.step = 1;
   }).catch(function (e) {
-    S.error = "分析没有成功：" + (e.message || "未知错误") + "。请再试一次。";
+    S.error = "分析没有成功：" + friendlyError(e) + "。请再试一次。";
   }).finally(function () { S.loading = false; render(); scrollTop(); });
 }
 function runCompose() {
@@ -240,8 +270,9 @@ function runCompose() {
       situation: S.situation, feelings: S.feels.slice(), needs: S.needs.slice(),
       expression: r.expression || "", request_options: r.request_options || [], self_empathy: r.self_empathy || ""
     });
+    clearDraft();
   }).catch(function (e) {
-    S.error = "生成表达时出了点问题：" + (e.message || "未知错误") + "。请再试一次。";
+    S.error = "生成表达时出了点问题：" + friendlyError(e) + "。请再试一次。";
   }).finally(function () { S.loading = false; render(); scrollTop(); });
 }
 function toggleWord(listName, word) {
@@ -256,6 +287,7 @@ function addCustom(listName, inputId) {
 }
 function restart() {
   S.step = 0; S.analysis = null; S.result = null; S.feels = []; S.needs = []; S.error = ""; S.copied = false;
+  if (!S.situation) clearDraft();
   render(); scrollTop();
 }
 function reloadSession(id) {
@@ -323,8 +355,9 @@ function renderExplore() {
 function renderStep0() {
   var h = '<div class="fadeup">';
   h += '<div class="label">发生了什么</div>';
-  h += '<textarea id="sit" placeholder="用自己的话写就好，带情绪、带评判都没关系——那正是分析的素材。\n\n例如：同事在会上打断我三次，最后还把我的方案说成是他的想法，我气死了，他就是想抢功。" oninput="S.situation=this.value">' + esc(S.situation) + '</textarea>';
-  h += '<button class="btn" onclick="runAnalysis()"' + (S.loading || !S.situation.trim() ? ' disabled' : '') + '>' + (S.loading ? '正在轻轻拆解这段描述…' : '摊开卡片 →') + '</button>';
+  h += '<textarea id="sit" placeholder="用自己的话写就好，带情绪、带评判都没关系——那正是分析的素材。\n\n例如：同事在会上打断我三次，最后还把我的方案说成是他的想法，我气死了，他就是想抢功。" oninput="saveDraft(this.value)" onkeydown="if((event.metaKey||event.ctrlKey)&&event.key===\'Enter\'){runAnalysis()}">' + esc(S.situation) + '</textarea>';
+  h += '<p class="hint" style="margin-top:8px">提示：写完后可点击按钮，或按 Ctrl/⌘ + Enter。</p>';
+  h += '<button class="btn" onclick="runAnalysis()"' + (S.loading ? ' disabled' : '') + '>' + (S.loading ? '正在轻轻拆解这段描述…' : '摊开卡片 →') + '</button>';
   h += '</div>';
   return h;
 }

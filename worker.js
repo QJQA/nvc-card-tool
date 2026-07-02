@@ -21,8 +21,9 @@
  * 换服务商 = 改 PROVIDER + 换 API_KEY，前端 index.html 不需要任何改动。
  */
 
-// 允许调用本接口的网页来源。上线后建议改成你的域名，如 "https://nvc.example.com"
-const ALLOWED_ORIGIN = "*";
+// 允许调用本接口的网页来源。
+// 默认先放开，确保上线测试顺利。上线稳定后可在环境变量里添加 ALLOWED_ORIGIN=https://你的pages域名
+const DEFAULT_ALLOWED_ORIGIN = "*";
 
 // 输入上限，防止超长请求消耗额度
 const MAX_PROMPT_CHARS = 4000;
@@ -40,15 +41,20 @@ const PROVIDERS = {
 
 export default {
   async fetch(request, env) {
+    const allowedOrigin = (env.ALLOWED_ORIGIN || DEFAULT_ALLOWED_ORIGIN).trim();
     const cors = {
-      "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Origin": allowedOrigin,
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     };
     const json = (obj, status) =>
       new Response(JSON.stringify(obj), { status: status || 200, headers: { ...cors, "Content-Type": "application/json" } });
 
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+    if (request.method === "GET") {
+      const providerName = (env.PROVIDER || "anthropic").toLowerCase().trim();
+      return json({ ok: true, message: "NVC AI proxy is running", provider: providerName });
+    }
     if (request.method !== "POST") return json({ error: { message: "只接受 POST 请求" } }, 405);
 
     let body;
