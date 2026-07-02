@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>感受与需要翻牌桌 · 非暴力沟通练习工具</title>
+<meta name="description" content="描述一件让你有情绪的事，翻开感受与需要卡片，练习非暴力沟通的四要素表达。">
+<style>
+  :root {
+    --bg: #F0F1EB;
+    --paper: #FAFAF6;
+    --ink: #2B3230;
+    --ink-soft: #5C6662;
+    --line: #D9DCD2;
+    --feel: #54708E;
+    --feel-bg: #E7EDF3;
+    --need: #5F7355;
+    --need-bg: #E9EEE3;
+    --warn: #8A6D3B;
+    --warn-bg: #F3EDDE;
+    --serif: 'Noto Serif SC','Songti SC','SimSun',serif;
+    --sans: 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 40px 20px 80px; }
+  @media (max-width: 480px) { .wrap { padding: 24px 16px 64px; } }
+
+  .eyebrow { font-size: 12px; letter-spacing: 4px; color: var(--ink-soft); }
+  h1 { font-family: var(--serif); font-size: 30px; font-weight: 700; line-height: 1.3; margin-top: 8px; }
+  h1 .accent { color: var(--need); }
+  .intro { color: var(--ink-soft); font-size: 14px; margin-top: 8px; line-height: 1.75; }
+
+  .tabs { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+  .tab { border: 1px solid var(--line); background: transparent; color: var(--ink-soft); border-radius: 999px; padding: 7px 16px; font-size: 13px; cursor: pointer; font-family: var(--sans); }
+  .tab.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+  .stepper { display: flex; align-items: center; gap: 6px; margin: 28px 0 26px; flex-wrap: wrap; }
+  .stepdot { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid var(--line); color: var(--ink-soft); }
+  .stepdot.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .steplabel { font-size: 12px; color: var(--ink-soft); }
+  .steplabel.on { color: var(--ink); font-weight: 600; }
+  .stepline { width: 14px; height: 1px; background: var(--line); }
+
+  .label { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 12px; letter-spacing: 3px; }
+  .label::before { content: ""; width: 18px; height: 1px; background: currentColor; }
+
+  textarea, input[type=text], input[type=password] {
+    width: 100%; border: 1px solid var(--line); background: var(--paper); border-radius: 12px;
+    padding: 14px; font-size: 15px; line-height: 1.8; color: var(--ink); font-family: var(--sans);
+  }
+  textarea { resize: vertical; min-height: 150px; }
+  textarea:focus, input:focus, button:focus-visible { outline: 2px solid var(--need); outline-offset: 2px; }
+
+  .btn { display: block; width: 100%; border: none; border-radius: 10px; padding: 14px 24px; font-size: 15px;
+    font-family: var(--serif); font-weight: 600; color: #fff; background: var(--ink); cursor: pointer; margin-top: 16px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.feel { background: var(--feel); }
+  .btn.need { background: var(--need); }
+  .btn-ghost { border: 1px solid var(--line); background: transparent; color: var(--ink-soft); border-radius: 10px; padding: 13px 18px; font-size: 14px; cursor: pointer; font-family: var(--sans); }
+  .btn-mini { border: 1px solid var(--ink); background: transparent; color: var(--ink); border-radius: 8px; padding: 8px 14px; font-size: 13px; cursor: pointer; margin-top: 12px; font-family: var(--sans); }
+  .btn-mini.copied { background: var(--ink); color: #fff; }
+  .row { display: flex; gap: 10px; margin-top: 18px; }
+  .row .btn { margin-top: 0; flex: 1; }
+
+  .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px; margin-bottom: 18px; }
+  .panel.tint-need { background: var(--need-bg); border-color: rgba(95,115,85,.25); }
+  .panel.tint-warn { background: var(--warn-bg); border-color: rgba(138,109,59,.25); }
+  .panel.dashed { background: transparent; border-style: dashed; }
+  .serif-body { font-family: var(--serif); font-size: 16px; line-height: 1.9; }
+  .hint { font-size: 12.5px; color: var(--ink-soft); line-height: 1.75; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 560px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+  .card { text-align: left; border-radius: 10px; padding: 11px 12px; background: var(--paper); border: 1px solid var(--line);
+    box-shadow: 0 1px 2px rgba(43,50,48,.06); cursor: pointer; transition: all .18s ease; font-family: var(--sans);
+    animation: dealIn .45s ease both; }
+  .card .w { font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--ink); }
+  .card .n { font-size: 11.5px; margin-top: 2px; line-height: 1.45; color: var(--ink-soft); }
+  .card .t { font-size: 10px; margin-top: 5px; letter-spacing: 2px; opacity: .75; }
+  .card.f .t { color: var(--feel); }
+  .card.d .t { color: var(--need); }
+  .card.sel { transform: translateY(-2px); box-shadow: 0 2px 8px rgba(43,50,48,.18); }
+  .card.f.sel { background: var(--feel); border-color: var(--feel); }
+  .card.d.sel { background: var(--need); border-color: var(--need); }
+  .card.sel .w, .card.sel .n, .card.sel .t { color: #fff; }
+  .card.sel .n { color: rgba(255,255,255,.85); }
+  .card.sel .t { color: rgba(255,255,255,.75); }
+
+  .addrow { display: flex; gap: 8px; margin-top: 12px; }
+  .addrow input { flex: 1; padding: 9px 12px; font-size: 13px; border-radius: 9px; }
+  .addrow button { border-radius: 9px; padding: 0 16px; background: transparent; font-size: 13px; cursor: pointer; font-family: var(--sans); }
+  .addrow.f button { border: 1px solid var(--feel); color: var(--feel); }
+  .addrow.d button { border: 1px solid var(--need); color: var(--need); }
+
+  .chip { display: inline-block; border-radius: 999px; padding: 4px 12px; margin: 0 6px 8px 0; font-size: 13px; border: 1px solid transparent; }
+  .chip.f { background: var(--feel-bg); color: var(--feel); border-color: rgba(84,112,142,.15); }
+  .chip.d { background: var(--need-bg); color: var(--need); border-color: rgba(95,115,85,.15); }
+  .chip.w { background: var(--warn-bg); color: var(--warn); border-color: rgba(138,109,59,.15); }
+
+  .probe { margin-top: 14px; font-size: 13.5px; color: var(--ink-soft); font-style: italic; }
+  .err { margin-top: 14px; color: var(--warn); font-size: 13.5px; line-height: 1.7; }
+
+  .hist-item { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+  .hist-time { font-size: 11.5px; color: var(--ink-soft); letter-spacing: 1px; }
+  .hist-sit { font-size: 14px; line-height: 1.7; margin-top: 6px; }
+  .hist-expr { font-family: var(--serif); font-size: 14.5px; line-height: 1.85; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+  .hist-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .hist-actions button { font-size: 12.5px; padding: 6px 12px; border-radius: 8px; cursor: pointer; background: transparent; font-family: var(--sans); }
+  .hist-reload { border: 1px solid var(--need); color: var(--need); }
+  .hist-del { border: 1px solid var(--line); color: var(--ink-soft); }
+
+  .lib-group { font-family: var(--serif); font-size: 15px; font-weight: 600; margin: 18px 0 8px; }
+  .lib-group.f { color: var(--feel); } .lib-group.d { color: var(--need); }
+  .lib-cat { font-size: 12px; color: var(--ink-soft); margin-right: 8px; }
+  .lib-row { margin-bottom: 8px; }
+
+  .fadeup { animation: fadeUp .4s ease both; }
+  @keyframes dealIn { from { opacity: 0; transform: translateY(10px) rotate(-1deg); } to { opacity: 1; transform: none; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  .footer { margin-top: 40px; font-size: 11.5px; color: var(--ink-soft); line-height: 1.8; text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap"><div id="app"></div>
+  <div class="footer">灵感来自马歇尔·卢森堡《非暴力沟通》与 CNVC 感受/需要清单 · 练习记录只保存在你自己的设备上</div>
+</div>
+
+<script>
+/* =========================================================
+   配置：AI 分析接口
+   部署上线时，把 API_ENDPOINT 改成你的代理地址（见 README）。
+   例如 Cloudflare Worker: "https://你的worker.workers.dev"
+   或同域路由: "/api/claude"
+   ========================================================= */
+var API_ENDPOINT = "/api/claude";
+
+/* ————— 词库（依据 CNVC 感受/需要清单整理） ————— */
+var FEELING_LIB = {
+  "需要未被满足时": {
+    "低落": ["难过","沮丧","失望","委屈","心灰意冷","受伤","孤单","无助"],
+    "不安": ["焦虑","担心","害怕","紧张","不安","慌乱","疑虑"],
+    "恼怒": ["愤怒","恼火","烦躁","不耐烦","怨恨","反感"],
+    "疲乏": ["疲惫","麻木","倦怠","提不起劲","空虚"],
+    "困窘": ["尴尬","羞愧","内疚","困惑","纠结","为难"]
+  },
+  "需要被满足时": {
+    "平和": ["平静","安心","放松","踏实","满足","欣慰"],
+    "喜悦": ["开心","喜悦","兴奋","惊喜","有活力","轻快"],
+    "温暖": ["感动","温暖","感激","亲近","被爱着"],
+    "开阔": ["好奇","充满希望","自豪","自信","跃跃欲试"]
+  }
+};
+var NEED_LIB = {
+  "连接": ["被理解","被看见","陪伴","归属","亲密","支持","信任","接纳","尊重","关心","共情","被重视"],
+  "自主": ["选择","自由","独立","空间","自己做主","边界被尊重"],
+  "意义": ["成长","学习","贡献","创造","目标感","效能感","被认可","希望"],
+  "安全": ["安全感","确定性","秩序","稳定","公平","诚实","可预期"],
+  "滋养": ["休息","放松","玩耍","乐趣","健康","平衡","轻松"],
+  "存在": ["平静","和谐","美","真实做自己","完整"]
+};
+var CONTAINER_NEEDS = ["尊重","被尊重","被爱","被支持","被在乎","被重视","被关心"];
+var STEPS = ["描述情境","翻感受卡","翻需要卡","完整表达"];
+var HIST_KEY = "nvc_history_v1";
+
+/* ————— 状态 ————— */
+var S = {
+  tab: "explore", step: 0, situation: "",
+  analysis: null, feels: [], needs: [], result: null,
+  loading: false, error: "", copied: false
+};
+
+/* ————— 本地历史 ————— */
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); } catch (e) { return []; }
+}
+function saveSession(sess) {
+  try {
+    var h = loadHistory();
+    h.unshift(sess);
+    if (h.length > 50) h = h.slice(0, 50);
+    localStorage.setItem(HIST_KEY, JSON.stringify(h));
+  } catch (e) { /* 隐私模式等场景下静默失败，不影响使用 */ }
+}
+function deleteSession(id) {
+  try {
+    localStorage.setItem(HIST_KEY, JSON.stringify(loadHistory().filter(function (s) { return s.id !== id; })));
+  } catch (e) {}
+  render();
+}
+
+/* ————— API ————— */
+function buildAnalysisPrompt(situation) {
+  return '你是一位非暴力沟通（NVC）陪伴者，帮助来访者从一段情境描述里辨认观察、感受与需要。请分析下面的描述，只返回 JSON，不要任何其他文字或 Markdown 围栏。\n\n情境描述：\n"""' + situation + '"""\n\n返回这个结构的 JSON（单行紧凑格式，不要换行缩进，字符串务必简短，确保完整输出不被截断）：\n{"observation":"把描述改写成一句不含评判的客观观察（30字内）","judgments":["原描述中的评判/概括/标签词，最多3个，没有则为空数组"],"pseudo_feelings":["原描述中的伪感受词（如被忽视这类实为评判的词），最多2个，没有则为空数组"],"feelings":[{"word":"感受词","why":"为何可能有此感受（10字内）"}],"needs":[{"word":"需要词","category":"连接/自主/意义/安全/滋养/存在 之一","why":"10字内"}],"probe":"一个温和的开放式追问（20字内）"}\n\n要求：feelings 给 6 个候选（表层与深层情绪都要有），needs 给 6 个候选（来自不同类别）。这些是供对方点选确认的卡片，不是结论，要有多样性。用简体中文。第一个字符必须是 { ，最后一个字符必须是 } 。';
+}
+function buildComposePrompt(situation, feels, needs) {
+  return '你是一位非暴力沟通（NVC）教练。来访者描述了一个情境，并已确认了自己的感受和需要。请帮 ta 组装表达。只返回 JSON，不要任何其他文字或 Markdown 围栏。\n\n情境："""' + situation + '"""\n确认的感受：' + feels.join("、") + '\n确认的需要：' + needs.join("、") + '\n\n返回（单行紧凑 JSON，第一个字符必须是 { ，最后一个字符必须是 } ）：\n{"expression":"一段完整的 NVC 四要素表达，第一人称，口语自然不公式化，含观察、感受、需要，并以一个具体可行的请求结尾（80字内）","request_options":["另外2个不同方向的具体请求，每个20字内（如一个面向对方、一个面向自己）"],"self_empathy":"一句给来访者自己的共情话语，确认这些感受和需要是正当的（25字内）"}\n用简体中文。';
+}
+function askOnce(prompt) {
+  return fetch(API_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ messages: [{ role: "user", content: prompt }] })
+  }).then(function (res) {
+    if (!res.ok) throw new Error("接口请求失败（HTTP " + res.status + "）。请确认代理已部署、地址配置正确。");
+    return res.json();
+  }).then(function (data) {
+    if (data.error) throw new Error("接口返回错误：" + (data.error.message || JSON.stringify(data.error)));
+    var text = (data.content || []).filter(function (b) { return b.type === "text"; })
+      .map(function (b) { return b.text; }).join("\n");
+    if (!text) throw new Error("接口没有返回内容");
+    var a = text.indexOf("{"), b = text.lastIndexOf("}");
+    if (a === -1 || b <= a) throw new Error("返回内容不是有效的 JSON（可能被截断）");
+    return JSON.parse(text.slice(a, b + 1));
+  });
+}
+function ask(prompt) {
+  return askOnce(prompt).catch(function () { return askOnce(prompt); });
+}
+
+/* ————— 动作 ————— */
+function runAnalysis() {
+  if (!S.situation.trim() || S.loading) return;
+  S.loading = true; S.error = ""; render();
+  ask(buildAnalysisPrompt(S.situation)).then(function (a) {
+    S.analysis = a; S.feels = []; S.needs = []; S.result = null; S.step = 1;
+  }).catch(function (e) {
+    S.error = "分析没有成功：" + (e.message || "未知错误") + "。请再试一次。";
+  }).finally(function () { S.loading = false; render(); scrollTop(); });
+}
+function runCompose() {
+  if (S.needs.length === 0 || S.loading) return;
+  S.loading = true; S.error = ""; render();
+  ask(buildComposePrompt(S.situation, S.feels, S.needs)).then(function (r) {
+    S.result = r; S.step = 3;
+    saveSession({
+      id: Date.now(), time: new Date().toISOString(),
+      situation: S.situation, feelings: S.feels.slice(), needs: S.needs.slice(),
+      expression: r.expression || "", request_options: r.request_options || [], self_empathy: r.self_empathy || ""
+    });
+  }).catch(function (e) {
+    S.error = "生成表达时出了点问题：" + (e.message || "未知错误") + "。请再试一次。";
+  }).finally(function () { S.loading = false; render(); scrollTop(); });
+}
+function toggleWord(listName, word) {
+  var l = S[listName], i = l.indexOf(word);
+  if (i === -1) l.push(word); else l.splice(i, 1);
+  render();
+}
+function addCustom(listName, inputId) {
+  var el = document.getElementById(inputId);
+  var v = el && el.value.trim();
+  if (v && S[listName].indexOf(v) === -1) { S[listName].push(v); render(); }
+}
+function restart() {
+  S.step = 0; S.analysis = null; S.result = null; S.feels = []; S.needs = []; S.error = ""; S.copied = false;
+  render(); scrollTop();
+}
+function reloadSession(id) {
+  var s = loadHistory().find(function (x) { return x.id === id; });
+  if (!s) return;
+  S.situation = s.situation; S.tab = "explore"; restart();
+}
+function copyExpr() {
+  if (!S.result) return;
+  var t = S.result.expression || "";
+  function done() { S.copied = true; render(); setTimeout(function () { S.copied = false; render(); }, 1600); }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(done).catch(function () { fallbackCopy(t); done(); });
+  } else { fallbackCopy(t); done(); }
+}
+function fallbackCopy(t) {
+  var el = document.createElement("textarea");
+  el.value = t; document.body.appendChild(el); el.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(el);
+}
+function scrollTop() { window.scrollTo({ top: 0, behavior: "smooth" }); }
+function esc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/* ————— 渲染 ————— */
+function render() {
+  var app = document.getElementById("app");
+  var h = '';
+  h += '<div class="eyebrow">非暴力沟通 · 练习工具</div>';
+  h += '<h1>感受与需要<span class="accent">翻牌桌</span></h1>';
+  h += '<p class="intro">描述一件让你有情绪的事，这里会摊开一副候选卡片。你不需要"想出"自己的感受——只需要在看到词的瞬间，留意哪张卡让你心里"咯噔"一下。</p>';
+  h += '<div class="tabs">';
+  [["explore","开始探索"],["history","练习历史"],["library","感受·需要词库"]].forEach(function (t) {
+    h += '<button class="tab' + (S.tab === t[0] ? ' on' : '') + '" onclick="S.tab=\'' + t[0] + '\';render()">' + t[1] + '</button>';
+  });
+  h += '</div>';
+
+  if (S.tab === "library") h += renderLibrary();
+  else if (S.tab === "history") h += renderHistory();
+  else h += renderExplore();
+
+  app.innerHTML = h;
+}
+
+function renderExplore() {
+  var h = '<div class="stepper">';
+  STEPS.forEach(function (s, i) {
+    h += '<span class="stepdot' + (i <= S.step ? ' on' : '') + '">' + (i + 1) + '</span>';
+    h += '<span class="steplabel' + (i === S.step ? ' on' : '') + '">' + s + '</span>';
+    if (i < STEPS.length - 1) h += '<span class="stepline"></span>';
+  });
+  h += '</div>';
+
+  if (S.step === 0) h += renderStep0();
+  else if (S.step === 1) h += renderStep1();
+  else if (S.step === 2) h += renderStep2();
+  else if (S.step === 3) h += renderStep3();
+
+  if (S.error) h += '<p class="err">' + esc(S.error) + '</p>';
+  return h;
+}
+
+function renderStep0() {
+  var h = '<div class="fadeup">';
+  h += '<div class="label">发生了什么</div>';
+  h += '<textarea id="sit" placeholder="用自己的话写就好，带情绪、带评判都没关系——那正是分析的素材。\n\n例如：同事在会上打断我三次，最后还把我的方案说成是他的想法，我气死了，他就是想抢功。" oninput="S.situation=this.value">' + esc(S.situation) + '</textarea>';
+  h += '<button class="btn" onclick="runAnalysis()"' + (S.loading || !S.situation.trim() ? ' disabled' : '') + '>' + (S.loading ? '正在轻轻拆解这段描述…' : '摊开卡片 →') + '</button>';
+  h += '</div>';
+  return h;
+}
+
+function renderStep1() {
+  var a = S.analysis, h = '<div class="fadeup">';
+  h += '<div class="panel"><div class="label">先把观察擦干净</div>';
+  h += '<p class="serif-body">' + esc(a.observation) + '</p>';
+  var js = a.judgments || [], pf = a.pseudo_feelings || [];
+  if (js.length || pf.length) {
+    h += '<div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">';
+    if (js.length) h += '<div class="hint" style="margin-bottom:6px">描述里混进的评判：' + js.map(function (j) { return '<span class="chip w">' + esc(j) + '</span>'; }).join('') + '</div>';
+    if (pf.length) h += '<div class="hint">伪感受（其实在指责对方）：' + pf.map(function (j) { return '<span class="chip w">' + esc(j) + '</span>'; }).join('') + '</div>';
+    h += '</div>';
+  }
+  h += '</div>';
+
+  h += '<div class="label" style="color:var(--feel)">感受卡 · 选出有共鸣的（可多选）</div>';
+  h += '<div class="cards">';
+  (a.feelings || []).forEach(function (f, i) {
+    var sel = S.feels.indexOf(f.word) !== -1;
+    h += '<button class="card f' + (sel ? ' sel' : '') + '" style="animation-delay:' + (i * 60) + 'ms" onclick="toggleWord(\'feels\',\'' + esc(f.word) + '\')">';
+    h += '<div class="w">' + esc(f.word) + '</div><div class="n">' + esc(f.why) + '</div><div class="t">' + (sel ? '✓ 有共鸣' : '轻点选择') + '</div></button>';
+  });
+  // 自定义已添加但不在候选里的
+  S.feels.forEach(function (w) {
+    if (!(a.feelings || []).some(function (f) { return f.word === w; })) {
+      h += '<button class="card f sel" onclick="toggleWord(\'feels\',\'' + esc(w) + '\')"><div class="w">' + esc(w) + '</div><div class="n">你自己补充的</div><div class="t">✓ 有共鸣</div></button>';
+    }
+  });
+  h += '</div>';
+  h += '<div class="addrow f"><input type="text" id="cf" placeholder="卡片里没有？自己写一个感受词"><button onclick="addCustom(\'feels\',\'cf\')">加入</button></div>';
+  if (a.probe) h += '<p class="probe">💭 ' + esc(a.probe) + '</p>';
+  h += '<button class="btn feel" onclick="S.step=2;render();scrollTop()"' + (S.feels.length === 0 ? ' disabled' : '') + '>已选 ' + S.feels.length + ' 个感受，去看需要 →</button>';
+  h += '</div>';
+  return h;
+}
+
+function renderStep2() {
+  var a = S.analysis, h = '<div class="fadeup">';
+  h += '<div class="hint" style="margin-bottom:16px">你选的感受：' + S.feels.map(function (f) { return '<span class="chip f">' + esc(f) + '</span>'; }).join('') + '<div style="margin-top:4px">感受是信号——它在提醒你，某些需要此刻没被满足。会是下面哪些？</div></div>';
+  h += '<div class="label" style="color:var(--need)">需要卡 · 选出真正在乎的（可多选）</div>';
+  h += '<div class="cards">';
+  (a.needs || []).forEach(function (n, i) {
+    var sel = S.needs.indexOf(n.word) !== -1;
+    h += '<button class="card d' + (sel ? ' sel' : '') + '" style="animation-delay:' + (i * 60) + 'ms" onclick="toggleWord(\'needs\',\'' + esc(n.word) + '\')">';
+    h += '<div class="w">' + esc(n.word) + '</div><div class="n">' + esc(n.category) + ' · ' + esc(n.why) + '</div><div class="t">' + (sel ? '✓ 有共鸣' : '轻点选择') + '</div></button>';
+  });
+  S.needs.forEach(function (w) {
+    if (!(a.needs || []).some(function (n) { return n.word === w; })) {
+      h += '<button class="card d sel" onclick="toggleWord(\'needs\',\'' + esc(w) + '\')"><div class="w">' + esc(w) + '</div><div class="n">你自己补充的</div><div class="t">✓ 有共鸣</div></button>';
+    }
+  });
+  h += '</div>';
+  h += '<div class="addrow d"><input type="text" id="cn" placeholder="卡片里没有？自己写一个需要"><button onclick="addCustom(\'needs\',\'cn\')">加入</button></div>';
+
+  var containers = S.needs.filter(function (n) { return CONTAINER_NEEDS.indexOf(n) !== -1; });
+  if (containers.length) {
+    h += '<div class="panel tint-warn" style="margin-top:16px"><p style="font-size:13px;color:var(--warn);line-height:1.8">🚪 你选了「' + containers.map(esc).join('」「') + '」——这类词是一扇门，不是终点。试着再问自己一句：<b>如果它被满足了，我具体会得到什么？</b>答案往往是更精确的词，比如：被听见、被认可、自主、平等、体面、意见被认真考虑。如果想到了，可以用上面的输入框补充进来。</p></div>';
+  }
+
+  h += '<div class="row"><button class="btn-ghost" onclick="S.step=1;render();scrollTop()">← 返回</button>';
+  h += '<button class="btn need" onclick="runCompose()"' + (S.needs.length === 0 || S.loading ? ' disabled' : '') + '>' + (S.loading ? '正在帮你组装表达…' : '组装完整表达 →') + '</button></div>';
+  h += '</div>';
+  return h;
+}
+
+function renderStep3() {
+  var r = S.result, h = '<div class="fadeup">';
+  if (r.self_empathy) {
+    h += '<div class="panel tint-need"><div class="label" style="color:var(--need)">第一步 · 说给自己 🪞</div>';
+    h += '<p class="serif-body" style="font-size:15.5px">' + esc(r.self_empathy) + '</p>';
+    h += '<p class="hint" style="margin-top:8px">开口之前，先在心里接住自己。这一步做扎实了，下面的话才不容易变形成讨好或攻击。</p></div>';
+  }
+  h += '<div class="panel"><div class="label">第二步 · 说给 ta 的主草稿 💬</div>';
+  h += '<p class="serif-body" style="font-size:17px;line-height:2">' + esc(r.expression) + '</p>';
+  h += '<button class="btn-mini' + (S.copied ? ' copied' : '') + '" onclick="copyExpr()">' + (S.copied ? '已复制 ✓' : '复制这段话') + '</button></div>';
+  if (r.request_options && r.request_options.length) {
+    h += '<div class="panel"><div class="label">备选 · 请求还可以换个方向 💬</div>';
+    h += '<p class="hint" style="margin-bottom:8px">同一组感受和需要，可以翻译成不同的请求。如果主草稿结尾的请求不合适，可以换成这些：</p>';
+    r.request_options.forEach(function (x) { h += '<p style="font-size:14.5px;line-height:1.9">· ' + esc(x) + '</p>'; });
+    h += '</div>';
+  }
+  h += '<div class="panel dashed"><p class="hint">小提醒：这段话是草稿，不是台词。真正开口时，用你自己的语气说，并允许对方说"不"——请求和命令的区别，就在被拒绝之后你的反应里。本次练习已自动存入「练习历史」（仅保存在你的设备上）。</p></div>';
+  h += '<button class="btn" onclick="S.situation=\'\';restart()">练习下一个情境</button>';
+  h += '</div>';
+  return h;
+}
+
+function renderHistory() {
+  var hist = loadHistory();
+  var h = '<div class="fadeup" style="margin-top:26px">';
+  if (!hist.length) {
+    h += '<div class="panel dashed"><p class="hint">还没有练习记录。完成一次完整的翻牌练习后，会自动保存在这里——只存在你这台设备的浏览器里，不会上传到任何服务器。</p></div>';
+  } else {
+    h += '<p class="hint" style="margin-bottom:14px">共 ' + hist.length + ' 条记录，保存在你的设备本地。清除浏览器数据会一并清除它们。</p>';
+    hist.forEach(function (s) {
+      var d = new Date(s.time);
+      var ts = d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      h += '<div class="hist-item"><div class="hist-time">' + ts + '</div>';
+      h += '<div class="hist-sit">' + esc(s.situation.length > 80 ? s.situation.slice(0, 80) + '…' : s.situation) + '</div>';
+      h += '<div style="margin-top:8px">' + (s.feelings || []).map(function (f) { return '<span class="chip f">' + esc(f) + '</span>'; }).join('') + (s.needs || []).map(function (n) { return '<span class="chip d">' + esc(n) + '</span>'; }).join('') + '</div>';
+      if (s.expression) h += '<div class="hist-expr">' + esc(s.expression) + '</div>';
+      h += '<div class="hist-actions"><button class="hist-reload" onclick="reloadSession(' + s.id + ')">用这个情境再练一次</button><button class="hist-del" onclick="deleteSession(' + s.id + ')">删除</button></div>';
+      h += '</div>';
+    });
+  }
+  h += '</div>';
+  return h;
+}
+
+function renderLibrary() {
+  var h = '<div class="fadeup" style="margin-top:26px">';
+  h += '<p class="hint" style="margin-bottom:16px">依据 CNVC 感受与需要清单整理。练习时可以像用 GROK 卡片一样：慢慢扫过这些词，凭身体的直觉停在有共鸣的词上，而不是用头脑分析"我应该有什么感受"。</p>';
+  h += '<div class="label" style="color:var(--feel)">感受词库</div>';
+  Object.keys(FEELING_LIB).forEach(function (g) {
+    h += '<div class="lib-group f">' + g + '</div>';
+    Object.keys(FEELING_LIB[g]).forEach(function (c) {
+      h += '<div class="lib-row"><span class="lib-cat">' + c + '</span>' + FEELING_LIB[g][c].map(function (w) { return '<span class="chip f">' + w + '</span>'; }).join('') + '</div>';
+    });
+  });
+  h += '<div style="height:14px"></div><div class="label" style="color:var(--need)">需要词库</div>';
+  Object.keys(NEED_LIB).forEach(function (c) {
+    h += '<div class="lib-row" style="margin-bottom:10px"><span class="lib-cat">' + c + '</span>' + NEED_LIB[c].map(function (w) { return '<span class="chip d">' + w + '</span>'; }).join('') + '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+render();
+</script>
+</body>
+</html>
